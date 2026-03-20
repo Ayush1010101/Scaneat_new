@@ -1,0 +1,23 @@
+CREATE TABLE `scans` (
+	`id` varchar(64) NOT NULL,
+	`userId` int NOT NULL,
+	`foodName` varchar(255) NOT NULL,
+	`imageUrl` text,
+	`calories` decimal(10,2) NOT NULL,
+	`protein` decimal(10,2) NOT NULL,
+	`carbs` decimal(10,2) NOT NULL,
+	`fats` decimal(10,2) NOT NULL,
+	`foodType` varchar(50),
+	`isVegetarian` enum('true','false') DEFAULT 'false',
+	`isVegan` enum('true','false') DEFAULT 'false',
+	`healthScore` decimal(3,1),
+	`portionSize` text,
+	`ingredients` json,
+	`allergens` json,
+	`vitamins` json,
+	`healthRecommendation` text,
+	`rawAnalysis` json,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `scans_id` PRIMARY KEY(`id`)
+);

@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1767879310474,
+      "tag": "0000_faulty_bill_hollister",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1767880642970,
+      "tag": "0001_nappy_gamma_corps",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1770145177729,
+      "tag": "0002_brief_rhodey",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1771055673294,
+      "tag": "0003_petite_carmella_unuscione",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1772441704045,
+      "tag": "0004_chilly_sheva_callister",
+      "breakpoints": true
+    }
+  ]
+}

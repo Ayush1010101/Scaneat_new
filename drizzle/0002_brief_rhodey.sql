@@ -1,0 +1,1 @@
+ALTER TABLE `scans` ADD `confidenceScore` decimal(3,2) DEFAULT '0.85';
