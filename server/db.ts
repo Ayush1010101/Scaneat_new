@@ -2,7 +2,7 @@ import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, scans, type Scan, type InsertScan } from "../drizzle/schema";
 import { ENV } from './_core/env';
-import { nanoid } from "nanoid";
+import { randomUUID as nanoid } from "crypto";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 

@@ -5,7 +5,7 @@ import { TRPCError } from "@trpc/server";
 import { createScan, getScanById, getUserScans, deleteScan } from "../db";
 import { invokeLLM } from "../_core/llm";
 import { storagePut } from "../storage";
-import { nanoid } from "nanoid";
+import { randomUUID as nanoid } from "crypto";
 
 // Simple in-memory cache for food analysis (TTL: 1 hour)
 const analysisCache = new Map<string, { data: any; timestamp: number }>();
