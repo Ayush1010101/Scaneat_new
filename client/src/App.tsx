@@ -14,6 +14,7 @@ import Premium from "./pages/Premium";
 import AdminPanel from "./pages/AdminPanel";
 import { Settings } from "./pages/Settings";
 import BottomNavigation from "./components/BottomNavigation";
+import { Sparkles } from "lucide-react";
 
 function Router() {
   const { isAuthenticated } = useAuth();
@@ -43,16 +44,19 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--background))] to-purple-900/50 flex items-center justify-center">
-        <div className="animate-pulse">
-          <div className="h-12 w-12 bg-purple-500 rounded-full"></div>
+      <div className="min-h-screen bg-[hsl(var(--background))] flex items-center justify-center">
+        <div className="text-center animate-scale-in">
+          <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-4 animate-glow-pulse">
+            <Sparkles className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-[hsl(var(--muted-foreground))] text-sm font-medium">ScanEat</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--background))] via-purple-900/30 to-[hsl(var(--background))]">
+    <div className="min-h-screen bg-[hsl(var(--background))]">
       <Router />
       {isAuthenticated && <BottomNavigation />}
     </div>
@@ -62,9 +66,18 @@ function AppContent() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark">
+      <ThemeProvider defaultTheme="dark" switchable>
         <TooltipProvider>
-          <Toaster />
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              style: {
+                background: "hsl(222 47% 9%)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                color: "hsl(210 20% 95%)",
+              },
+            }}
+          />
           <AppContent />
         </TooltipProvider>
       </ThemeProvider>

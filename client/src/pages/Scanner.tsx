@@ -1,14 +1,12 @@
 import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, Upload, X, Loader2, ArrowLeft } from "lucide-react";
+import { Camera, Upload, X, Loader2, ArrowLeft, Sparkles } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { useTheme } from "@/contexts/ThemeContext";
 
 export default function Scanner() {
   const [, navigate] = useLocation();
-  const { theme } = useTheme();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -27,7 +25,6 @@ export default function Scanner() {
     },
   });
 
-  // Initialize camera
   useEffect(() => {
     if (!cameraActive) return;
 
@@ -56,7 +53,6 @@ export default function Scanner() {
     };
   }, [cameraActive]);
 
-  // Capture photo from camera
   const capturePhoto = () => {
     if (videoRef.current && canvasRef.current) {
       const context = canvasRef.current.getContext("2d");
@@ -71,7 +67,6 @@ export default function Scanner() {
     }
   };
 
-  // Handle file upload
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -83,7 +78,6 @@ export default function Scanner() {
     }
   };
 
-  // Analyze the captured image
   const handleAnalyze = async () => {
     if (!capturedImage) {
       toast.error("Please capture or upload an image first.");
@@ -101,106 +95,86 @@ export default function Scanner() {
   };
 
   return (
-    <div className={`min-h-screen pb-24 transition-colors duration-300 ${
-      theme === "dark"
-        ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
-        : "bg-gradient-to-br from-orange-50 via-yellow-50 to-blue-50"
-    }`}>
+    <div className="min-h-screen pb-28 bg-[hsl(var(--background))]">
       {/* Header */}
-      <div className={`sticky top-0 z-40 transition-colors duration-300 ${
-        theme === "dark" ? "bg-gray-800/80" : "bg-white/80"
-      } backdrop-blur-md border-b ${
-        theme === "dark" ? "border-gray-700" : "border-orange-100"
-      }`}>
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-4">
+      <div className="sticky top-0 z-40 glass border-b border-white/5">
+        <div className="max-w-lg mx-auto px-5 py-4 flex items-center gap-4">
           <button
             onClick={() => navigate("/")}
-            className={`p-2 rounded-full transition-colors ${
-              theme === "dark"
-                ? "hover:bg-gray-700 text-gray-300"
-                : "hover:bg-orange-100 text-gray-700"
-            }`}
+            className="p-2 rounded-xl hover:bg-white/5 transition-colors"
           >
-            <ArrowLeft className="w-6 h-6" />
+            <ArrowLeft className="w-5 h-5 text-[hsl(var(--muted-foreground))]" />
           </button>
-          <h1 className={`text-2xl font-bold ${
-            theme === "dark" ? "text-white" : "text-gray-900"
-          }`}>
-            Scan Food
-          </h1>
+          <h1 className="text-xl font-bold text-[hsl(var(--foreground))]">Scan Food</h1>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 py-6 md:py-8">
+      <div className="max-w-lg mx-auto px-5 py-6 space-y-6">
         {!capturedImage ? (
-          <div className="space-y-6">
-            {/* Camera Section */}
+          <div className="space-y-6 animate-slide-up">
             {cameraActive ? (
               <div className="space-y-4">
-                <div className="rounded-2xl overflow-hidden shadow-xl">
+                <div className="rounded-2xl overflow-hidden border border-white/10 relative">
                   <video
                     ref={videoRef}
                     autoPlay
                     playsInline
                     className="w-full h-auto bg-black"
                   />
+                  {/* Scanning overlay corners */}
+                  <div className="absolute inset-4 pointer-events-none">
+                    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-emerald-400 rounded-tl-lg" />
+                    <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-emerald-400 rounded-tr-lg" />
+                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-emerald-400 rounded-bl-lg" />
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-emerald-400 rounded-br-lg" />
+                  </div>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex gap-3">
                   <Button
                     onClick={capturePhoto}
-                    className="flex-1 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-bold py-3 rounded-full text-lg"
+                    className="flex-1 h-14 gradient-primary text-white font-bold rounded-2xl border-0 hover:opacity-90 text-base"
                   >
                     <Camera className="w-5 h-5 mr-2" />
-                    Capture Photo
+                    Capture
                   </Button>
                   <Button
                     onClick={() => setCameraActive(false)}
-                    variant="outline"
-                    className={`flex-1 font-bold py-3 rounded-full text-lg ${
-                      theme === "dark"
-                        ? "border-gray-600 text-gray-300 hover:bg-gray-700"
-                        : "border-orange-200 text-gray-700 hover:bg-orange-50"
-                    }`}
+                    className="h-14 px-6 bg-white/5 hover:bg-white/10 text-[hsl(var(--foreground))] rounded-2xl border border-white/10"
                   >
-                    <X className="w-5 h-5 mr-2" />
-                    Cancel
+                    <X className="w-5 h-5" />
                   </Button>
                 </div>
               </div>
             ) : (
-              <div className={`rounded-2xl p-8 md:p-12 text-center border-2 border-dashed transition-colors ${
-                theme === "dark"
-                  ? "border-gray-600 bg-gray-800"
-                  : "border-orange-200 bg-orange-50"
-              }`}>
-                <div className="text-5xl md:text-6xl mb-4">📷</div>
-                <h2 className={`text-2xl md:text-3xl font-bold mb-4 ${
-                  theme === "dark" ? "text-white" : "text-gray-900"
-                }`}>
-                  Ready to Scan?
-                </h2>
-                <p className={`text-lg mb-6 ${
-                  theme === "dark" ? "text-gray-400" : "text-gray-600"
-                }`}>
-                  Take a photo of your food or upload an image
-                </p>
-                <div className="flex flex-col md:flex-row gap-4">
-                  <Button
-                    onClick={() => setCameraActive(true)}
-                    className="flex-1 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-bold py-3 rounded-full text-lg"
-                  >
-                    <Camera className="w-5 h-5 mr-2" />
-                    Open Camera
-                  </Button>
-                  <Button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex-1 bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white font-bold py-3 rounded-full text-lg"
-                  >
-                    <Upload className="w-5 h-5 mr-2" />
-                    Upload Image
-                  </Button>
-                </div>
+              <div className="space-y-4">
+                {/* Camera button */}
+                <button
+                  onClick={() => setCameraActive(true)}
+                  className="w-full glass-card p-10 text-center group"
+                >
+                  <div className="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-5 group-hover:glow-emerald transition-all">
+                    <Camera className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-[hsl(var(--foreground))] mb-2">Open Camera</h3>
+                  <p className="text-[hsl(var(--muted-foreground))] text-sm">
+                    Point at your food and capture
+                  </p>
+                </button>
+
+                {/* Upload button */}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full glass-card p-6 flex items-center gap-4 text-left group"
+                >
+                  <div className="w-14 h-14 rounded-xl bg-cyan-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-500/20 transition-colors">
+                    <Upload className="w-7 h-7 text-cyan-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-[hsl(var(--foreground))]">Upload Image</h4>
+                    <p className="text-sm text-[hsl(var(--muted-foreground))]">Choose from gallery</p>
+                  </div>
+                </button>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -212,9 +186,9 @@ export default function Scanner() {
             )}
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* Preview Section */}
-            <div className="rounded-2xl overflow-hidden shadow-xl">
+          <div className="space-y-6 animate-scale-in">
+            {/* Preview */}
+            <div className="rounded-2xl overflow-hidden border border-white/10">
               <img
                 src={capturedImage}
                 alt="Captured food"
@@ -222,29 +196,21 @@ export default function Scanner() {
               />
             </div>
 
-            {/* Analysis Info */}
-            <div className={`rounded-2xl p-6 md:p-8 transition-colors ${
-              theme === "dark"
-                ? "bg-gray-800 border border-gray-700"
-                : "bg-white border border-orange-100"
-            }`}>
-              <h3 className={`text-xl font-bold mb-4 ${
-                theme === "dark" ? "text-white" : "text-gray-900"
-              }`}>
-                Ready to Analyze?
-              </h3>
-              <p className={`mb-6 ${
-                theme === "dark" ? "text-gray-400" : "text-gray-600"
-              }`}>
-                Our AI will analyze the nutritional content of your food and provide detailed information about calories, macronutrients, and more.
+            {/* Analysis Card */}
+            <div className="glass-card p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Sparkles className="w-5 h-5 text-emerald-400" />
+                <h3 className="text-lg font-bold text-[hsl(var(--foreground))]">Ready to Analyze</h3>
+              </div>
+              <p className="text-sm text-[hsl(var(--muted-foreground))] mb-6">
+                AI will identify the food and break down calories, macros, vitamins, and more.
               </p>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex gap-3">
                 <Button
                   onClick={handleAnalyze}
                   disabled={isProcessing}
-                  className="flex-1 bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white font-bold py-3 rounded-full text-lg disabled:opacity-50"
+                  className="flex-1 h-14 gradient-primary text-white font-bold rounded-2xl border-0 hover:opacity-90 disabled:opacity-50 text-base"
                 >
                   {isProcessing ? (
                     <>
@@ -252,20 +218,17 @@ export default function Scanner() {
                       Analyzing...
                     </>
                   ) : (
-                    "Analyze Food"
+                    <>
+                      <Sparkles className="w-5 h-5 mr-2" />
+                      Analyze Food
+                    </>
                   )}
                 </Button>
                 <Button
                   onClick={() => setCapturedImage(null)}
-                  variant="outline"
-                  className={`flex-1 font-bold py-3 rounded-full text-lg ${
-                    theme === "dark"
-                      ? "border-gray-600 text-gray-300 hover:bg-gray-700"
-                      : "border-orange-200 text-gray-700 hover:bg-orange-50"
-                  }`}
+                  className="h-14 px-6 bg-white/5 hover:bg-white/10 text-[hsl(var(--foreground))] rounded-2xl border border-white/10"
                 >
-                  <X className="w-5 h-5 mr-2" />
-                  Retake
+                  <X className="w-5 h-5" />
                 </Button>
               </div>
             </div>
@@ -273,7 +236,6 @@ export default function Scanner() {
         )}
       </div>
 
-      {/* Hidden Canvas for Photo Capture */}
       <canvas ref={canvasRef} className="hidden" />
     </div>
   );

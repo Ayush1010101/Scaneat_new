@@ -17,6 +17,17 @@ function base64ToBuffer(base64: string): Buffer {
   return Buffer.from(base64Data, "base64");
 }
 
+// Helper to detect actual image MIME type from base64 magic bytes
+function detectMimeType(base64Data: string): string {
+  // Check first few bytes of the base64 data for magic numbers
+  const raw = base64Data.substring(0, 16);
+  if (raw.startsWith("/9j/")) return "image/jpeg";
+  if (raw.startsWith("iVBOR")) return "image/png";
+  if (raw.startsWith("UklGR")) return "image/webp";
+  if (raw.startsWith("R0lGO")) return "image/gif";
+  return "image/jpeg"; // default fallback
+}
+
 // Helper to generate cache key from image data
 function getCacheKey(imageData: string): string {
   const hash = createHash("md5")
@@ -77,8 +88,19 @@ function calculateConfidenceScore(analysis: any): number {
 // Helper to parse AI response with better error handling
 function parseAIResponse(content: string) {
   try {
-    // Try to extract JSON from the response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    // Step 1: Strip markdown code fences if present (```json ... ```)
+    let cleaned = content.trim();
+    cleaned = cleaned.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "");
+
+    // Step 2: Try direct parse first (works when response_format is json_object)
+    try {
+      return JSON.parse(cleaned);
+    } catch {
+      // Fall through to regex extraction
+    }
+
+    // Step 3: Extract JSON object from surrounding text
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0]);
     }
@@ -89,7 +111,7 @@ function parseAIResponse(content: string) {
   }
 }
 
-// Retry logic with exponential backoff
+// Retry logic with exponential backoff and rate-limit awareness
 async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   maxRetries: number = 3,
@@ -102,6 +124,20 @@ async function retryWithBackoff<T>(
       return await fn();
     } catch (error) {
       lastError = error as Error;
+      const errMsg = (error as Error).message || "";
+
+      // For 429 rate limit errors, extract retry delay from error message
+      if (errMsg.includes("429") && attempt < maxRetries - 1) {
+        const retryMatch = errMsg.match(/retry in ([\d.]+)s/i);
+        const retryDelaySec = retryMatch ? parseFloat(retryMatch[1]) : 40;
+        const delayMs = Math.min(retryDelaySec * 1000, 45000);
+        console.log(
+          `[Retry] Rate limited (429), waiting ${delayMs / 1000}s before retry ${attempt + 2}...`
+        );
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        continue;
+      }
+
       if (attempt < maxRetries - 1) {
         const delayMs = initialDelayMs * Math.pow(2, attempt);
         console.log(
@@ -220,74 +256,57 @@ export const foodRouter = router({
         let analysis: any = null;
 
         try {
+          // Detect actual image MIME type from the base64 data
+          const mimeType = detectMimeType(input.imageData);
+          console.log(`[Food Analysis] Detected image MIME type: ${mimeType}`);
+
           const response = await retryWithBackoff(
             async () => {
               return await invokeLLM({
+                responseFormat: { type: "json_object" },
                 messages: [
                   {
                     role: "system",
-                    content: `You are an expert nutritionist, food scientist, and health coach. Analyze the food image with EXTREME precision and provide COMPREHENSIVE nutritional information for health-conscious users.
+                    content: `You are an expert nutritionist and food scientist. Analyze the food in the image with high precision.
 
-IMPORTANT: Return ONLY valid JSON, no markdown, no explanations, no extra text.
+You MUST respond with a valid JSON object. No markdown, no explanations.
 
-Provide DETAILED analysis with these exact fields:
+PRIORITY 1 — Identify the food correctly. Look carefully at colors, textures, shape, plating, and cooking method. If you recognize the dish, name it specifically (e.g., "Chicken Tikka Masala" not "curry").
+
+PRIORITY 2 — Estimate accurate nutritional values per visible serving. Cross-reference with USDA FoodData Central values. For Indian, Asian, or regional dishes, use culturally accurate nutritional databases.
+
+PRIORITY 3 — Provide complete micronutrient and health data.
+
+Return this exact JSON structure:
 {
-  "foodName": "specific food name (e.g., 'Grilled Chicken Breast with Lemon Sauce')",
-  "foodDescription": "detailed description of the food, cooking method, and presentation",
-  "foodType": "veg/non-veg/vegan",
+  "foodName": "specific dish name",
+  "foodDescription": "description of the dish, ingredients visible, cooking method",
+  "foodType": "veg" | "non-veg" | "vegan",
   "isVegetarian": boolean,
   "isVegan": boolean,
-  "servingSize": "exact serving size (e.g., '100g', '1 medium piece', '1 cup')",
-  "calories": number (per serving, be VERY accurate),
-  "caloriesBreakdown": {"fromProtein": number, "fromCarbs": number, "fromFats": number},
-  "protein": number (in grams),
-  "proteinQuality": "complete/incomplete",
-  "aminoAcids": [{"name": "Leucine", "amount": "value", "unit": "g"}, ...],
-  "carbs": number (in grams),
-  "carbsBreakdown": {"simple": number, "complex": number, "fiber": number},
-  "glycemicIndex": number (0-100),
-  "glycemicLoad": number,
-  "fats": number (in grams),
-  "fatsBreakdown": {"saturated": number, "unsaturated": number, "trans": number},
-  "omega3": number (in mg),
-  "omega6": number (in mg),
-  "fiber": number (in grams),
-  "sugar": number (in grams),
-  "sugarType": "natural/added/mixed",
-  "sodium": number (in mg),
-  "cholesterol": number (in mg),
-  "healthScore": number (0-10, based on nutritional balance),
-  "macroRatio": "P:C:F ratio (e.g., 30:40:30)",
-  "ingredients": ["ingredient1 with quantity", "ingredient2 with quantity"],
-  "allergens": [{"name": "allergen1", "severity": "critical/moderate/mild"}, ...],
-  "vitamins": [
-    {"name": "Vitamin A", "amount": "value", "unit": "IU/mcg", "dailyValue": "% DV", "benefits": "supports vision and immunity", "deficiencyRisk": "low/medium/high"},
-    {"name": "Vitamin C", "amount": "value", "unit": "mg", "dailyValue": "% DV", "benefits": "antioxidant, immune support", "deficiencyRisk": "low/medium/high"},
-    {"name": "Vitamin D", "amount": "value", "unit": "IU/mcg", "dailyValue": "% DV", "benefits": "bone health, calcium absorption", "deficiencyRisk": "low/medium/high"},
-    {"name": "Vitamin B12", "amount": "value", "unit": "mcg", "dailyValue": "% DV", "benefits": "energy, nervous system", "deficiencyRisk": "low/medium/high"},
-    {"name": "Vitamin B6", "amount": "value", "unit": "mg", "dailyValue": "% DV", "benefits": "brain development, immune function", "deficiencyRisk": "low/medium/high"},
-    {"name": "Folate", "amount": "value", "unit": "mcg", "dailyValue": "% DV", "benefits": "cell division, DNA synthesis", "deficiencyRisk": "low/medium/high"}
-  ],
-  "minerals": [
-    {"name": "Iron", "amount": "value", "unit": "mg", "dailyValue": "% DV", "bioavailability": "high/medium/low", "benefits": "oxygen transport", "deficiencyRisk": "low/medium/high"},
-    {"name": "Calcium", "amount": "value", "unit": "mg", "dailyValue": "% DV", "bioavailability": "high/medium/low", "benefits": "bone health, muscle function", "deficiencyRisk": "low/medium/high"},
-    {"name": "Potassium", "amount": "value", "unit": "mg", "dailyValue": "% DV", "bioavailability": "high/medium/low", "benefits": "heart health, blood pressure", "deficiencyRisk": "low/medium/high"},
-    {"name": "Magnesium", "amount": "value", "unit": "mg", "dailyValue": "% DV", "bioavailability": "high/medium/low", "benefits": "muscle relaxation, energy", "deficiencyRisk": "low/medium/high"},
-    {"name": "Zinc", "amount": "value", "unit": "mg", "dailyValue": "% DV", "bioavailability": "high/medium/low", "benefits": "immunity, wound healing", "deficiencyRisk": "low/medium/high"}
-  ],
-  "phytonutrients": [{"name": "Lycopene", "amount": "value", "benefits": "antioxidant, heart health"}, ...],
-  "healthBenefits": ["benefit1 with explanation", "benefit2 with explanation", "benefit3 with explanation"],
-  "healthConcerns": [{"concern": "concern1", "severity": "high/medium/low", "recommendation": "action to take"}, ...],
-  "dietaryRestrictions": ["keto-friendly", "gluten-free", "paleo", "low-sodium", etc],
-  "healthRecommendation": "specific, actionable recommendation based on nutritional profile with daily intake guidance",
-  "bestPairingFoods": ["food1 for balanced meal with reason", "food2 with reason"],
-  "estimatedCookingMethod": "method used (grilled, fried, baked, etc)",
-  "nutritionEducation": "brief explanation of key nutrients in this food for user understanding",
-  "hydrationTip": "water intake recommendation when consuming this food",
-  "timingRecommendation": "best time to eat this food (pre-workout, post-workout, with meals, etc)"
+  "servingSize": "estimated serving (e.g. '1 plate ~250g')",
+  "calories": number,
+  "protein": number,
+  "carbs": number,
+  "fats": number,
+  "fiber": number,
+  "sugar": number,
+  "sodium": number,
+  "cholesterol": number,
+  "healthScore": number (0-10),
+  "ingredients": ["ingredient1", "ingredient2"],
+  "allergens": [{"name": "allergen", "severity": "critical|moderate|mild"}],
+  "vitamins": [{"name": "Vitamin X", "amount": "value", "unit": "mg|mcg|IU", "dailyValue": "X%"}],
+  "minerals": [{"name": "Mineral X", "amount": "value", "unit": "mg|mcg", "dailyValue": "X%"}],
+  "healthBenefits": ["benefit1", "benefit2", "benefit3"],
+  "healthConcerns": [{"concern": "text", "severity": "high|medium|low", "recommendation": "text"}],
+  "dietaryRestrictions": ["keto-friendly", "gluten-free", etc],
+  "healthRecommendation": "actionable recommendation",
+  "bestPairingFoods": ["food1 with reason", "food2 with reason"],
+  "estimatedCookingMethod": "grilled|fried|baked|steamed|raw|etc"
 }
 
-Be EXTREMELY accurate with nutritional values. Use standard USDA data where applicable. Provide health education that helps users understand nutrition better. Focus on actionable insights for health-conscious individuals.`
+All number fields must be numeric (not strings). Be precise — do not guess wildly. If uncertain, provide your best estimate based on visual evidence.`
                   },
                   {
                     role: "user",
@@ -295,13 +314,13 @@ Be EXTREMELY accurate with nutritional values. Use standard USDA data where appl
                       {
                         type: "image_url",
                         image_url: {
-                          url: imageUrl,
-                          detail: "high", // Use high detail for accurate analysis
+                          url: `data:${mimeType};base64,${input.imageData}`,
+                          detail: "high",
                         },
                       },
                       {
                         type: "text",
-                        text: "Analyze this food image in detail. Provide comprehensive nutritional information, vitamins, minerals, health benefits, and recommendations. Return ONLY valid JSON.",
+                        text: "Identify this food and provide detailed, accurate nutritional analysis. Respond with JSON only.",
                       },
                     ],
                   },
@@ -330,12 +349,25 @@ Be EXTREMELY accurate with nutritional values. Use standard USDA data where appl
             console.log(`[Food Analysis] Successfully analyzed: ${analysis.foodName}`);
           }
         } catch (llmError) {
+          const errMsg = (llmError as Error).message || "";
           console.error("[LLM Error] Food analysis failed:", llmError);
-          analysis = getFallbackAnalysis();
+
+          // Don't silently return fake data — tell the user what happened
+          if (errMsg.includes("429")) {
+            throw new TRPCError({
+              code: "TOO_MANY_REQUESTS" as any,
+              message: "AI analysis quota exceeded. Please wait a minute and try again, or upgrade your Gemini API plan.",
+            });
+          }
+
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "AI analysis failed. Please try again in a moment.",
+          });
         }
 
         if (!analysis) {
-          console.warn("[Food Analysis] Using fallback analysis");
+          console.warn("[Food Analysis] Parse failed, using fallback analysis");
           analysis = getFallbackAnalysis();
         }
         
@@ -348,29 +380,42 @@ Be EXTREMELY accurate with nutritional values. Use standard USDA data where appl
         saveToCache(cacheKey, analysis);
         console.log(`[Food Analysis] Cached for future use`);
 
-        // Save to database
+        // Save to database — persist ALL analysis fields
         const scan = await createScan(ctx.user.id, {
           foodName: analysis.foodName,
+          foodDescription: analysis.foodDescription,
           imageUrl,
           calories: analysis.calories,
           protein: analysis.protein,
           carbs: analysis.carbs,
           fats: analysis.fats,
+          fiber: analysis.fiber,
+          sugar: analysis.sugar,
+          sodium: analysis.sodium,
+          cholesterol: analysis.cholesterol,
           foodType: analysis.foodType,
           isVegetarian: analysis.isVegetarian ? "true" : "false",
           isVegan: analysis.isVegan ? "true" : "false",
           healthScore: analysis.healthScore,
           confidenceScore: (confidenceScore / 100).toString(),
           portionSize: analysis.servingSize || analysis.portionSize,
+          servingSize: analysis.servingSize,
           ingredients: analysis.ingredients,
           allergens: analysis.allergens,
           vitamins: analysis.vitamins,
+          minerals: analysis.minerals,
+          healthBenefits: analysis.healthBenefits,
+          healthConcerns: analysis.healthConcerns,
+          dietaryRestrictions: analysis.dietaryRestrictions,
+          bestPairingFoods: analysis.bestPairingFoods,
+          estimatedCookingMethod: analysis.estimatedCookingMethod,
           healthRecommendation: analysis.healthRecommendation,
           rawAnalysis: analysis,
         });
 
         return scan;
       } catch (error) {
+        import("fs").then(fs => fs.writeFileSync("food-err.txt", String((error as any).stack || error)));
         console.error("[Food Analysis] Critical error:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -385,6 +430,7 @@ Be EXTREMELY accurate with nutritional values. Use standard USDA data where appl
       const scans = await getUserScans(ctx.user.id);
       return scans;
     } catch (error) {
+      import("fs").then(fs => fs.writeFileSync("history-err.txt", String((error as any).stack || error)));
       console.error("Error fetching scan history:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",

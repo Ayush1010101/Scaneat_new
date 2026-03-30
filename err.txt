@@ -1,0 +1,10 @@
+TRPCError: Food analysis failed. Please try again with a clearer image.
+    at <anonymous> (C:\Users\Ayush\Desktop\SCANEAT\scan-and-eat (1)\server\routers\food.ts:376:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async resolveMiddleware (C:\Users\Ayush\Desktop\SCANEAT\scan-and-eat (1)\node_modules\@trpc\server\src\unstable-core-do-not-import\procedureBuilder.ts:576:22)
+    at async callRecursive (C:\Users\Ayush\Desktop\SCANEAT\scan-and-eat (1)\node_modules\@trpc\server\src\unstable-core-do-not-import\procedureBuilder.ts:642:20)
+    at async callRecursive (C:\Users\Ayush\Desktop\SCANEAT\scan-and-eat (1)\node_modules\@trpc\server\src\unstable-core-do-not-import\procedureBuilder.ts:642:20)
+    at async callRecursive (C:\Users\Ayush\Desktop\SCANEAT\scan-and-eat (1)\node_modules\@trpc\server\src\unstable-core-do-not-import\procedureBuilder.ts:642:20)
+    at async procedure (C:\Users\Ayush\Desktop\SCANEAT\scan-and-eat (1)\node_modules\@trpc\server\src\unstable-core-do-not-import\procedureBuilder.ts:682:20)
+    at async <anonymous> (C:\Users\Ayush\Desktop\SCANEAT\scan-and-eat (1)\node_modules\@trpc\server\src\unstable-core-do-not-import\router.ts:474:20)
+    at async testRouter (C:\Users\Ayush\Desktop\SCANEAT\scan-and-eat (1)\test-analyze-fixed.ts:24:20)

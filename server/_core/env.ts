@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 export const ENV = {
   // Database
   databaseUrl: process.env.DATABASE_URL ?? "",
@@ -15,7 +17,7 @@ export const ENV = {
   // AWS S3 Storage
   awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
   awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
-  awsRegion: process.env.AWS_REGION ?? "us-east-1",
+  awsRegion: process.env.AWS_REGION ?? "ap-south-1",
   awsS3Bucket: process.env.AWS_S3_BUCKET ?? "",
 
   // OpenAI (for Whisper transcription)

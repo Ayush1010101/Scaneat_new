@@ -1,184 +1,88 @@
-import { useTheme } from "@/contexts/ThemeContext";
-import { ArrowLeft, Zap, TrendingUp, Share2, Calendar, BarChart3 } from "lucide-react";
+import { ArrowLeft, Zap, TrendingUp, Share2, Calendar, BarChart3, Sparkles } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function Premium() {
   const [, navigate] = useLocation();
-  const { theme } = useTheme();
 
   const features = [
-    {
-      icon: <Zap className="w-8 h-8" />,
-      title: "Advanced AI Analysis",
-      description: "Ultra-precise food detection with 99% accuracy",
-      color: "from-orange-400 to-orange-600",
-    },
-    {
-      icon: <TrendingUp className="w-8 h-8" />,
-      title: "Personalized Insights",
-      description: "Weekly nutrition reports and health trends",
-      color: "from-blue-400 to-blue-600",
-    },
-    {
-      icon: <Share2 className="w-8 h-8" />,
-      title: "Social Sharing",
-      description: "Share results with watermarked graphics",
-      color: "from-green-400 to-green-600",
-    },
-    {
-      icon: <Calendar className="w-8 h-8" />,
-      title: "Meal Planning",
-      description: "AI-powered meal suggestions & planning",
-      color: "from-purple-400 to-purple-600",
-    },
-    {
-      icon: <BarChart3 className="w-8 h-8" />,
-      title: "Nutrition Dashboard",
-      description: "Comprehensive health analytics & tracking",
-      color: "from-pink-400 to-pink-600",
-    },
+    { icon: <Zap className="w-6 h-6" />, title: "Advanced AI", description: "99% accuracy food detection", color: "text-amber-400", bg: "bg-amber-500/10" },
+    { icon: <TrendingUp className="w-6 h-6" />, title: "Insights", description: "Weekly nutrition reports", color: "text-emerald-400", bg: "bg-emerald-500/10" },
+    { icon: <Share2 className="w-6 h-6" />, title: "Social", description: "Share beautiful graphics", color: "text-cyan-400", bg: "bg-cyan-500/10" },
+    { icon: <Calendar className="w-6 h-6" />, title: "Meal Plans", description: "AI-powered suggestions", color: "text-purple-400", bg: "bg-purple-500/10" },
+    { icon: <BarChart3 className="w-6 h-6" />, title: "Dashboard", description: "Health analytics", color: "text-pink-400", bg: "bg-pink-500/10" },
   ];
 
   return (
-    <div className={`min-h-screen pb-24 transition-colors duration-300 ${
-      theme === "dark"
-        ? "bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
-        : "bg-gradient-to-br from-orange-50 via-yellow-50 to-blue-50"
-    }`}>
+    <div className="min-h-screen pb-28 bg-[hsl(var(--background))]">
       {/* Header */}
-      <div className={`sticky top-0 z-40 transition-colors duration-300 ${
-        theme === "dark" ? "bg-gray-800/80" : "bg-white/80"
-      } backdrop-blur-md border-b ${
-        theme === "dark" ? "border-gray-700" : "border-orange-100"
-      }`}>
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate("/")}
-              className={`p-2 rounded-full transition-colors ${
-                theme === "dark"
-                  ? "hover:bg-gray-700 text-gray-300"
-                  : "hover:bg-orange-100 text-gray-700"
-              }`}
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <h1 className={`text-2xl md:text-3xl font-bold ${
-              theme === "dark" ? "text-white" : "text-gray-900"
-            }`}>
-              Premium Features
-            </h1>
-          </div>
+      <div className="sticky top-0 z-40 glass border-b border-white/5">
+        <div className="max-w-lg mx-auto px-5 py-4 flex items-center gap-4">
+          <button onClick={() => navigate("/")} className="p-2 rounded-xl hover:bg-white/5 transition-colors">
+            <ArrowLeft className="w-5 h-5 text-[hsl(var(--muted-foreground))]" />
+          </button>
+          <h1 className="text-xl font-bold text-[hsl(var(--foreground))]">Premium</h1>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
-        {/* Hero Section */}
-        <div className={`rounded-3xl p-8 md:p-12 mb-12 transition-colors ${
-          theme === "dark"
-            ? "bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600"
-            : "bg-gradient-to-br from-orange-400 to-orange-500 border border-orange-300"
-        }`}>
-          <div className="text-center">
-            <div className="text-5xl md:text-6xl mb-4">✨</div>
-            <h2 className={`text-3xl md:text-4xl font-bold mb-4 ${
-              theme === "dark" ? "text-white" : "text-white"
-            }`}>
-              Coming Soon
+      <div className="max-w-lg mx-auto px-5 py-6 space-y-6">
+        {/* Hero */}
+        <div className="glass-card p-8 text-center animate-scale-in relative overflow-hidden">
+          <div className="absolute inset-0 gradient-glow" />
+          <div className="relative z-10">
+            <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-5 glow-emerald">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold text-[hsl(var(--foreground))] mb-2">
+              <span className="text-gradient">Coming Soon</span>
             </h2>
-            <p className={`text-lg mb-8 ${
-              theme === "dark" ? "text-gray-300" : "text-white/90"
-            }`}>
-              Unlock powerful premium features to take your nutrition tracking to the next level
+            <p className="text-[hsl(var(--muted-foreground))] text-sm mb-6">
+              Unlock powerful features for your nutrition journey
             </p>
-            <button className={`px-8 py-3 rounded-full font-bold transition-all transform hover:scale-105 ${
-              theme === "dark"
-                ? "bg-orange-500 hover:bg-orange-600 text-white"
-                : "bg-white hover:bg-gray-100 text-orange-500"
-            }`}>
-              Notify Me When Available
+            <button className="px-8 py-3.5 gradient-primary text-white font-semibold rounded-xl hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98] glow-emerald">
+              Notify Me
             </button>
           </div>
         </div>
 
-        {/* Features Grid */}
-        <div className="mb-12">
-          <h3 className={`text-2xl md:text-3xl font-bold mb-8 ${
-            theme === "dark" ? "text-white" : "text-gray-900"
-          }`}>
-            What's Coming
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
+        {/* Features */}
+        <div>
+          <h3 className="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider mb-3 px-1">What's Coming</h3>
+          <div className="space-y-3">
+            {features.map((feature, i) => (
               <div
-                key={index}
-                className={`rounded-2xl p-6 md:p-8 transition-all transform hover:scale-105 ${
-                  theme === "dark"
-                    ? "bg-gray-800 border border-gray-700 hover:border-gray-600"
-                    : "bg-white border border-orange-100 hover:border-orange-300"
-                }`}
+                key={i}
+                className="glass-card p-5 flex items-center gap-4 animate-slide-up"
+                style={{ animationDelay: `${i * 0.05}s` }}
               >
-                <div className={`inline-block p-4 rounded-xl mb-4 bg-gradient-to-br ${feature.color} text-white`}>
+                <div className={`w-12 h-12 rounded-xl ${feature.bg} flex items-center justify-center flex-shrink-0 ${feature.color}`}>
                   {feature.icon}
                 </div>
-                <h4 className={`text-xl font-bold mb-2 ${
-                  theme === "dark" ? "text-white" : "text-gray-900"
-                }`}>
-                  {feature.title}
-                </h4>
-                <p className={theme === "dark" ? "text-gray-400" : "text-gray-600"}>
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Benefits Section */}
-        <div className={`rounded-2xl p-8 md:p-12 transition-colors ${
-          theme === "dark"
-            ? "bg-gray-800 border border-gray-700"
-            : "bg-white border border-orange-100"
-        }`}>
-          <h3 className={`text-2xl md:text-3xl font-bold mb-6 ${
-            theme === "dark" ? "text-white" : "text-gray-900"
-          }`}>
-            Why Go Premium?
-          </h3>
-          <div className="space-y-4">
-            {[
-              "Get 99% accurate food recognition with advanced AI",
-              "Receive personalized meal recommendations based on your goals",
-              "Track weekly nutrition trends and health metrics",
-              "Share beautiful nutrition graphics on social media",
-              "Access exclusive health insights and reports",
-              "Priority support and early access to new features",
-            ].map((benefit, index) => (
-              <div key={index} className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center text-white font-bold mt-1">
-                  ✓
+                <div>
+                  <h4 className="font-semibold text-[hsl(var(--foreground))] text-sm">{feature.title}</h4>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))]">{feature.description}</p>
                 </div>
-                <p className={`text-lg ${
-                  theme === "dark" ? "text-gray-300" : "text-gray-700"
-                }`}>
-                  {benefit}
-                </p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* CTA Section */}
-        <div className="mt-12 text-center">
-          <p className={`text-lg mb-6 ${
-            theme === "dark" ? "text-gray-400" : "text-gray-600"
-          }`}>
-            Be the first to know when premium features launch
-          </p>
-          <button className="px-8 py-4 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-bold rounded-full transition-all transform hover:scale-105">
-            Get Early Access
-          </button>
+        {/* Benefits */}
+        <div>
+          <h3 className="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider mb-3 px-1">Benefits</h3>
+          <div className="glass-card p-5 space-y-3">
+            {[
+              "99% accurate food recognition",
+              "Personalized meal recommendations",
+              "Weekly nutrition trends",
+              "Beautiful social media graphics",
+              "Priority support & early access",
+            ].map((b, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-2 flex-shrink-0" />
+                <p className="text-sm text-[hsl(var(--muted-foreground))]">{b}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

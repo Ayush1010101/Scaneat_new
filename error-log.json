@@ -1,0 +1,6 @@
+{
+  "stack": "TRPCError: Food analysis failed. Please try again with a clearer image.\n    at <anonymous> (C:\\Users\\Ayush\\Desktop\\SCANEAT\\scan-and-eat (1)\\server\\routers\\food.ts:375:15)\n    at async resolveMiddleware (C:\\Users\\Ayush\\Desktop\\SCANEAT\\scan-and-eat (1)\\node_modules\\@trpc\\server\\src\\unstable-core-do-not-import\\procedureBuilder.ts:576:22)\n    at async callRecursive (C:\\Users\\Ayush\\Desktop\\SCANEAT\\scan-and-eat (1)\\node_modules\\@trpc\\server\\src\\unstable-core-do-not-import\\procedureBuilder.ts:642:20)",
+  "message": "Food analysis failed. Please try again with a clearer image.",
+  "code": "INTERNAL_SERVER_ERROR",
+  "name": "TRPCError"
+}
